@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Turn-Based Dot Game</title>
+    
+</head>
+<style>
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background:goldenrod;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            background:black;
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 900px;
+
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .logo {
+            max-width: 100%;
+            height: auto;
+        }
+
+
+        .title {
+            font-family: 'Pixel font', monospace;
+            font-size: clamp(1.5em, 5vw, 2.5em);
+            font-weight: bold;
+            margin:0 ;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .rule-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .players-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0px;
+            padding: 0 0px;
+        }
+
+        .player-button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .player-a {
+            background: linear-gradient(45deg, #4CAF50, #81C784);
+            color: white;
+        }
+
+        .player-b {
+            background: linear-gradient(45deg, #FF6B35, #FF8E53);
+            color: white;
+        }
+
+        .player-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .turn-indicator {
+            text-align: center;
+            font-size: clamp(1em, 4vw, 1.5em);
+            margin-bottom: 0px;
+            font-weight: bold;
+        }
+
+        .turn-triangle {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .turn-triangle.green {
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 25px solid #4CAF50;
+        }
+
+        .turn-triangle.red {
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 25px solid #FF6B35;
+        }
+
+        .winner-display {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transform: scale(0);
+            transition: transform 0.5s ease;
+            color: #333;
+        }
+
+        .winner-display.show {
+            transform: scale(1);
+        }
+
+        .winner-text {
+            font-size: clamp(1.5em, 6vw, 2.2em);
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+
+        .winner-subtitle {
+            font-size: 1.2em;
+            opacity: 0.8;
+        }
+
+        .game-board {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 0px;
+            flex-direction: column;
+   
+        }
+
+        .circle {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(45deg, #2196F3, #64B5F6);
+            border-radius: 50%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
+            position: relative;
+        }
+
+        .circle:hover {
+            transform: scale(1.05);
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(45deg, #FFC107, #FFD54F);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .dot:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5);
+        }
+
+        .dot.clicked {
+            background: linear-gradient(45deg, #9E9E9E, #BDBDBD);
+            cursor: not-allowed;
+            transform: scale(0.8);
+        }
+
+        
+
+        .reset-button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #9C27B0, #BA68C8);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .circle-label {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .players-section {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .game-board {
+                flex-direction: column;
+            }
+            
+            .circle {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    
+</style>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title"><img class="logo" src="GAMEOFDOTS_copy.png" alt="Game of Dots Logo"/></h1>
+        </div>
+
+        <div class ="rule-container">
+            <h2>Game Rules!!</h2>
+            <ul>
+                <li>Players: Two players take part — Player A and Player B.</li>
+                <li>Turn Order: Players alternate turns throughout the game.</li>
+                <li>CLICK ON PLAYER BUTTON TO CHANGE TURNS</li>
+                <li>Move Rules:</li>
+                <ul>
+                    <li>On your turn, you may remove one or more yellow dots.</li>
+                    <li>All dots must be selected from the same blue circle.</li>
+                    <li>You cannot remove dots from multiple circles in a single turn.</li></ul>
+                <li>Losing Condition: The player who removes the final yellow dot from the board loses the game.</li>
+            </ul>
+        </div>
+
+        <div class="players-section">
+            <button class="player-button player-a" id="playerA" onclick="selectPlayer('A',)">PLAYER A</button>
+            
+            <div class="turn-indicator">
+                <span id="turn-text">TURN = PLAYER A</span>
+                <div class="turn-triangle green" id="turn-triangle"></div>
+            </div>
+            
+            <button class="player-button player-b" id="playerB" onclick="selectPlayer('B')">PLAYER B</button>
+        </div>
+
+        
+
+        <div class="winner-display" id="winner-display">
+            <div class="winner-text" id="winner-text">🎉 GAME OVER! 🎉</div>
+            <div class="winner-subtitle" id="winner-subtitle">Congratulations!</div>
+        </div>
+
+        <div class="game-board">
+
+             <div class="circle" id="circle2">
+                <div class="circle-label">Circle 2</div>
+                <div class="dot"  onclick="clickDot(this, 2,'circle2')"></div>
+                <div class="dot"  onclick="clickDot(this, 2, 'circle2')"></div>
+                <div class="dot"  onclick="clickDot(this, 2, 'circle2')"></div>
+            </div>
+
+            <div class="circle" id="circle1">
+                <div class="circle-label">Circle 1</div>
+                <div class="dot"   onclick="clickDot(this, 1,'circle1')"></div>
+                <div class="dot"   onclick="clickDot(this, 1, 'circle1')"></div>
+                <div class="dot"   onclick="clickDot(this, 1,'circle1')"></div>
+                <div class="dot"   onclick="clickDot(this, 1,'circle1')"></div>
+                <div class="dot"   onclick="clickDot(this, 1,'circle1')"></div>
+            </div>
+
+           
+
+            <div class="circle" id="circle3">
+                <div class="circle-label">Circle 3</div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+                <div class="dot"  onclick="clickDot(this, 3,'circle3')"></div>
+            </div>
+        </div>
+
+        <center>
+            <button class="reset-button" onclick="resetGame()">RESET GAME</button>
+        </center>
+    </div>
+
+    <script>
+        let currentPlayer = 'A';
+        let gameActive = true;
+       
+      
+        let currentCircle = null;
+        
+        
+
+        function selectPlayer(player) {
+            if (!gameActive) return;
+            
+            currentPlayer = player;
+            updateTurnDisplay(); 
+        }
+       
+
+        function updateTurnDisplay() {
+            const turnText = document.getElementById('turn-text');
+            const turnTriangle = document.getElementById('turn-triangle');
+
+            turnText.textContent = `TURN = PLAYER ${currentPlayer}`;
+           
+            if (currentPlayer === 'A') {
+                turnTriangle.className = 'turn-triangle green';
+                document.getElementById('playerA').disabled = true;
+                document.getElementById('playerB').disabled = false;
+                currentCircle = null;
+            } else {
+                
+                turnTriangle.className = 'turn-triangle red';
+                document.getElementById('playerA').disabled = false;
+                document.getElementById('playerB').disabled = true;
+                currentCircle = null;
+            }
+            
+            
+        }
+
+        function clickDot(dot, circleNum, circleId) {
+            if (!gameActive || dot.classList.contains('clicked')) return;
+
+          
+            
+            if (!currentCircle) {
+                currentCircle = circleId;
+            }
+
+            // Prevent selecting from multiple circles
+            if (circleId !== currentCircle) {
+
+                alert("You can only select dots from the same circle!");
+                
+                return;
+            }
+            
+        
+            // Mark dot as clicked
+            dot.classList.add('clicked');
+            
+            // Switch turns automatically
+            
+            
+            // Check if game is over
+            checkGameOver();
+        }
+
+        function checkGameOver() {
+            const allDots = document.querySelectorAll('.dot');
+            const clickedDots = document.querySelectorAll('.dot.clicked');
+            
+            if (clickedDots.length === allDots.length - 1) {
+                gameActive = false;
+                
+                // Determine winner (the player who made the last move loses)
+                let winner = '';
+                if(currentPlayer === 'A') {
+                   winner = 'Player A Wins!';
+                } 
+                else {
+                   winner = 'Player B Wins!';
+                }
+                
+                // Display winner on the page
+                displayWinner(winner);
+            }
+        }
+
+        function displayWinner(winner) {
+            const winnerDisplay = document.getElementById('winner-display');
+            const winnerText = document.getElementById('winner-text');
+            const winnerSubtitle = document.getElementById('winner-subtitle');
+            
+            winnerText.textContent = `🎉 ${winner} 🎉`;
+            winnerSubtitle.textContent = 'Game Over - Click Reset to Play Again!';
+            
+            // Show the winner display with animation
+            setTimeout(() => {
+                winnerDisplay.classList.add('show');
+            }, 300);
+        }
+
+        function resetGame() {
+            // Reset all dots
+            const allDots = document.querySelectorAll('.dot');
+            allDots.forEach(dot => {
+                dot.classList.remove('clicked');
+            });
+            
+            // Reset game state
+            currentPlayer = 'A';
+            gameActive = true;
+            
+            // Hide winner display
+            const winnerDisplay = document.getElementById('winner-display');
+            winnerDisplay.classList.remove('show');
+            
+            // Update display
+            updateTurnDisplay();
+        }
+
+        // Initialize the game
+        updateTurnDisplay();
+    </script>
+</body>
+</html>
