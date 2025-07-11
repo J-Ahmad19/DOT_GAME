@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <audio id="dot-sound" src="click-dot.wav" preload="auto"></audio>
+    <audio id="button-sound" src="click-button.wav" preload="auto"></audio>
+    <audio id="reset-sound" src="reset.wav" preload="auto"></audio>
+
+
     <title>Turn-Based Dot Game</title>
     
 </head>
@@ -200,6 +205,12 @@
             cursor: not-allowed;
             transform: scale(0.8);
         }
+        
+        .dot:active {
+            transform: scale(0.9);
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+        }
 
         
 
@@ -339,8 +350,12 @@
 
         function selectPlayer(player) {
             if (!gameActive) return;
+
+            // play sound effect
+            document.getElementById('button-sound').play();
             
             currentPlayer = player;
+            
             updateTurnDisplay(); 
         }
        
@@ -383,7 +398,9 @@
                 
                 return;
             }
+            // play sound effect
             
+            playSound('dot-sound');
         
             // Mark dot as clicked
             dot.classList.add('clicked');
@@ -394,6 +411,16 @@
             // Check if game is over
             checkGameOver();
         }
+
+        function playSound(id) {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.pause(); // stop it if still playing
+                    sound.currentTime = 0; // rewind to start
+                    sound.play().catch(err => console.warn("Audio play blocked", err));
+                }
+            }
+
 
         function checkGameOver() {
             const allDots = document.querySelectorAll('.dot');
